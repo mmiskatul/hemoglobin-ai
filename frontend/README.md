@@ -2,7 +2,7 @@
 
 A modern, high-performance **Next.js 16 + React 19 + Tailwind CSS v4** Emergency Donor Matching & Automated Alert Dispatch user interface.
 
-> ℹ️ **Architecture Note**: All backend services (Database, OpenAI Agent, Automated Email Dispatcher, RAG Indexing, and Audit Trail APIs) are consolidated into the [`ai-agent`](../ai-agent) FastAPI microservice.
+> ℹ️ **Architecture Note**: All backend services (Database, OpenAI Agent, Automated Email Dispatcher, RAG Indexing, and Audit Trail APIs) are consolidated into the [`backend`](../backend) FastAPI service.
 
 ---
 
@@ -18,15 +18,15 @@ A modern, high-performance **Next.js 16 + React 19 + Tailwind CSS v4** Emergency
 ## 📦 Getting Started
 
 ### 1. Prerequisite: Start the AI Agent Backend
-Ensure the FastAPI backend service in `ai-agent` is running on `http://localhost:8001`.
+Ensure the FastAPI backend service in `backend` is running on `http://localhost:8001`.
 
 ```bash
-cd ../ai-agent
+cd ../backend
 python main.py
 ```
 
 ### 2. Start Frontend Server
-From this directory (`smart-blood-app`):
+From this directory (`frontend`):
 
 ```bash
 npm run dev

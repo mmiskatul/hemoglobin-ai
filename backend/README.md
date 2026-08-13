@@ -41,7 +41,7 @@ It handles database management, donor registration, emergency matching, automate
 
 ```bash
 # Navigate to backend directory
-cd ai-agent
+cd backend
 
 # Install dependencies
 pip install -r requirements.txt
