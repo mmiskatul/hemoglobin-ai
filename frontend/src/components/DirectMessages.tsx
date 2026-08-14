@@ -24,7 +24,6 @@ export const DirectMessages: React.FC<DirectMessagesProps> = ({
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetchingChats, setFetchingChats] = useState(false);
-  const [conversationsError, setConversationsError] = useState<string | null>(null);
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
 

@@ -52,8 +52,8 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({
   const [likesMap, setLikesMap] = useState<Record<number, number>>({});
   const [hasLikedMap, setHasLikedMap] = useState<Record<number, boolean>>({});
 
-  const fetchPosts = useCallback(async () => {
-    setLoading(true);
+  const fetchPosts = useCallback(async (showLoading = false) => {
+    if (showLoading) setLoading(true);
     try {
       const res = await api.getPosts(selectedGroup, locationSearch);
       const fetchedPosts = res.posts || [];
@@ -75,7 +75,7 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({
     } catch {
       // ignore
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }, [selectedGroup, locationSearch, currentUser]);
 
@@ -91,14 +91,44 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({
   }, []);
 
   useEffect(() => {
-    fetchPosts();
-    fetchDonors();
+    let isCancelled = false;
+    api.getPosts(selectedGroup, locationSearch).then((res) => {
+      if (isCancelled) return;
+      const fetchedPosts = res.posts || [];
+      setPosts(fetchedPosts);
+
+      const initialLikes: Record<number, number> = {};
+      const initialHasLiked: Record<number, boolean> = {};
+
+      fetchedPosts.forEach((p) => {
+        initialLikes[p.id] = p.likes_count ?? 0;
+        if (currentUser && p.liked_by) {
+          initialHasLiked[p.id] = p.liked_by.includes(currentUser.id);
+        }
+      });
+
+      setLikesMap(initialLikes);
+      setHasLikedMap((prev) => ({ ...prev, ...initialHasLiked }));
+      setLoading(false);
+    }).catch(() => {
+      if (!isCancelled) setLoading(false);
+    });
+
+    api.listDonors().then((res) => {
+      if (!isCancelled) {
+        setRecentDonors(res.donors?.slice(0, 5) || []);
+      }
+    }).catch(() => {});
+
     const timer = setInterval(() => {
-      fetchPosts();
+      fetchPosts(false);
       fetchDonors();
     }, 6000);
-    return () => clearInterval(timer);
-  }, [fetchPosts, fetchDonors]);
+    return () => {
+      isCancelled = true;
+      clearInterval(timer);
+    };
+  }, [selectedGroup, locationSearch, currentUser, fetchPosts, fetchDonors]);
 
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();

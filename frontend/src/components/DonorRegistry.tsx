@@ -19,7 +19,7 @@ export const DonorRegistry: React.FC<DonorRegistryProps> = ({ onOpenRegister }) 
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const fetchDonors = useCallback(async (showLoading = true) => {
+  const fetchDonors = useCallback(async (showLoading = false) => {
     if (showLoading) setLoading(true);
     setError(null);
     try {
@@ -34,12 +34,38 @@ export const DonorRegistry: React.FC<DonorRegistryProps> = ({ onOpenRegister }) 
   }, [selectedGroup, locationSearch]);
 
   useEffect(() => {
-    fetchDonors(true);
+    let isCancelled = false;
+    api.listDonors(selectedGroup, locationSearch)
+      .then((res) => {
+        if (!isCancelled) {
+          setDonors(res.donors || []);
+          setError(null);
+          setLoading(false);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!isCancelled) {
+          const msg = err instanceof Error ? err.message : "Failed to load donors";
+          setError(msg);
+          setLoading(false);
+        }
+      });
+
     const timer = setInterval(() => {
-      fetchDonors(false);
+      api.listDonors(selectedGroup, locationSearch)
+        .then((res) => {
+          if (!isCancelled) {
+            setDonors(res.donors || []);
+          }
+        })
+        .catch(() => {});
     }, 5000);
-    return () => clearInterval(timer);
-  }, [fetchDonors]);
+
+    return () => {
+      isCancelled = true;
+      clearInterval(timer);
+    };
+  }, [selectedGroup, locationSearch]);
 
   const handleToggleAvailability = async (donorId: number, currentName: string) => {
     setActionLoading(true);
