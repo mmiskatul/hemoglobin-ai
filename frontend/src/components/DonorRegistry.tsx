@@ -34,6 +34,7 @@ export const DonorRegistry: React.FC<DonorRegistryProps> = ({ onOpenRegister }) 
   }, [selectedGroup, locationSearch]);
 
   useEffect(() => {
+    fetchDonors(true);
     const timer = setInterval(() => {
       fetchDonors(false);
     }, 5000);

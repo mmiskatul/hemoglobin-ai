@@ -81,7 +81,11 @@ export default function ProfilePage() {
       }
       try {
         const storedUser = JSON.parse(storedUserStr);
-        const id = storedUser.id || 1;
+        const id = storedUser.id;
+        if (id === undefined || id === null) {
+          router.push("/register");
+          return;
+        }
         setUserId(id);
         fetchProfile(id);
       } catch {
@@ -140,9 +144,13 @@ export default function ProfilePage() {
       // Update localStorage auth_user item
       const storedUserStr = localStorage.getItem("auth_user");
       if (storedUserStr) {
-        const parsed = JSON.parse(storedUserStr);
-        const updatedUser = { ...parsed, ...res };
-        localStorage.setItem("auth_user", JSON.stringify(updatedUser));
+        try {
+          const parsed = JSON.parse(storedUserStr);
+          const updatedUser = { ...parsed, ...res };
+          localStorage.setItem("auth_user", JSON.stringify(updatedUser));
+        } catch {
+          // ignore malformed stored user; profile save itself already succeeded
+        }
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to save profile changes.";

@@ -64,11 +64,14 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({
 
       fetchedPosts.forEach((p) => {
         initialLikes[p.id] = p.likes_count ?? 0;
-        initialHasLiked[p.id] = currentUser && p.liked_by ? p.liked_by.includes(currentUser.id) : false;
+        if (currentUser && p.liked_by) {
+          initialHasLiked[p.id] = p.liked_by.includes(currentUser.id);
+        }
       });
 
       setLikesMap(initialLikes);
-      setHasLikedMap(initialHasLiked);
+      // Preserve previously known liked state for posts whose liked_by was omitted this poll
+      setHasLikedMap((prev) => ({ ...prev, ...initialHasLiked }));
     } catch {
       // ignore
     } finally {
@@ -88,6 +91,8 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({
   }, []);
 
   useEffect(() => {
+    fetchPosts();
+    fetchDonors();
     const timer = setInterval(() => {
       fetchPosts();
       fetchDonors();

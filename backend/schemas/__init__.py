@@ -1,4 +1,4 @@
-from schemas import (
+from schemas.auth import (
     UserRegister,
     UserLogin,
     VerifyOTPPayload,
@@ -6,10 +6,11 @@ from schemas import (
     ForgotPasswordPayload,
     ResetPasswordPayload,
     UserProfileUpdate,
-    DonorCreate,
-    PostCreate,
-    PledgeCreate,
-    DirectMessageCreate,
+)
+from schemas.donor import DonorCreate
+from schemas.post import PostCreate, PledgeCreate
+from schemas.message import DirectMessageCreate
+from ai.schemas import (
     AgentChatRequest,
     KnowledgeUpsertRequest,
     RequestMatchAgentRequest,

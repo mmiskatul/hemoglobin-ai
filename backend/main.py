@@ -1,9 +1,9 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from ai_agent.config import get_ai_settings
-from ai_agent.database import init_db
-from ai_agent.router import router as ai_router
+from core.config import get_ai_settings
+from core.database import init_db
+from routers import api_router
 from bson import ObjectId
 from fastapi.encoders import ENCODERS_BY_TYPE
 
@@ -33,7 +33,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(ai_router)
+app.include_router(api_router)
 
 
 @app.get("/health")
