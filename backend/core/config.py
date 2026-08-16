@@ -41,6 +41,9 @@ class AIAgentSettings(BaseSettings):
     pinecone_index_host: str = ""
     pinecone_namespace: str = "hemoglobin-knowledge"
 
+    # Standalone AI Subsystem Microservice (ai-system/) Connection
+    ai_system_url: str = "http://localhost:8002"
+
     @property
     def get_mongo_url(self) -> str:
         return self.mongodb_uri

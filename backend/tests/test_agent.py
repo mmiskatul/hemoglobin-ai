@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from main import app
-from ai_agent.database import get_db
+from core.database import get_db
 
 client = TestClient(app)
 
@@ -365,7 +365,7 @@ def test_social_network_auth_posts_and_messaging():
 
 @pytest.mark.anyio
 async def test_verification_otp_email_format_and_delivery():
-    from ai_agent.emailer import send_verification_otp_email
+    from core.emailer import send_verification_otp_email
     res = await send_verification_otp_email(
         email="masabimiskat@gmail.com",
         name="Masab Miskat",

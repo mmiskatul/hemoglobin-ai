@@ -41,27 +41,58 @@ ai-system/
 
 ---
 
-## 🛠️ Quickstart
+## 🛠️ Quickstart (Linux / macOS)
 
 ### 1. Install Dependencies
 ```bash
 cd ai-system
+
+# Create and activate a dedicated virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
 pip install -r requirements.txt
 ```
 
 ### 2. Environment Configuration
-Create a `.env` file or export the following variables:
+Copy `.env.example` to `.env` and fill in real values (use the same MongoDB/OpenAI/Pinecone credentials as `backend/.env` so both services read/write the same donor data, RAG index, and LLM account):
+```bash
+cp .env.example .env
+# then edit .env with your real credentials
+```
 ```env
+HOST=0.0.0.0
+PORT=8002
+
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/ai_blood_hub?retryWrites=true&w=majority
+MONGODB_DB_NAME=ai_blood_hub
+
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4o-mini
 OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+
 PINECONE_API_KEY=...
 PINECONE_INDEX_NAME=hemoglobin-knowledge
+PINECONE_INDEX_HOST=
+PINECONE_NAMESPACE=hemoglobin-knowledge
 ```
+
+The Core Backend (`backend/`) talks to this service over HTTP via its `AI_SYSTEM_URL` setting (default `http://localhost:8002`, see `backend/.env.example`) and falls back to its own in-process AI logic if this service isn't running.
 
 ### 3. Run the AI Microservice
 ```bash
+cd ai-system
+source .venv/bin/activate
 uvicorn main:app --host 0.0.0.0 --port 8002 --reload
+```
+
+To leave the virtual environment later, run `deactivate`.
+
+### 4. Running Automated Unit Tests
+```bash
+cd ai-system
+source .venv/bin/activate
+python -m pytest tests/ -q
 ```
 
 ---

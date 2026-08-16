@@ -15,7 +15,7 @@ The high-level architecture diagram illustrates the multi-tier microservice desi
 | Layer / Tier | Component | Responsibilities & Technologies |
 | :--- | :--- | :--- |
 | **1. Client Tier** | **Next.js Web Client** | Responsive UI featuring AI Assistant Chat, Live Emergency Request Feed, Donor Registry, Direct Peer-to-Peer Messaging, and System Activity Logs. Built with React 19, TypeScript, and Tailwind CSS. |
-| **2. Backend Services Tier** | **Core Backend API Service** *(FastAPI, Port 8000)* | Manages user registration, JWT authentication, emergency post lifecycle, donor directory, direct messages, and system audit logs. |
+| **2. Backend Services Tier** | **Core Backend API Service** *(FastAPI, Port 8001)* | Manages user registration, JWT authentication, emergency post lifecycle, donor directory, direct messages, and system audit logs. |
 | | **Dedicated AI Subsystem** *(FastAPI, Port 8002)* | Autonomous LLM agent orchestrator, entity & intent parser, Pinecone RAG semantic retriever, and automated SMTP dispatch engine. |
 | **3. External Infrastructure Tier** | **MongoDB Atlas** | Primary relational document store for verified donors, active emergency posts, direct messages, and chat history. |
 | | **Pinecone Vector Cloud** | Vector knowledge store indexed with `text-embedding-3-small` containing clinical blood donation guidelines, eligibility rules, and protocols. |
@@ -42,7 +42,7 @@ graph LR
 
 | Stage | Responsibility | Operations |
 | :--- | :--- | :--- |
-| **(1) Ingestion Layer** | Endpoint ingestion | Accepts unstructured messages via `/ai/chat`, `/ai/public-chat`, and structured triage payloads via `/ai/match-request`. |
+| **(1) Ingestion Layer** | Endpoint ingestion | Frontend calls the Core Backend's `/api/ai/chat`, `/api/ai/public-chat`, and `/api/ai/match-request`. The backend forwards each request to the Dedicated AI Subsystem (`AI_SYSTEM_URL`, default `http://localhost:8002`) and falls back to an equivalent in-process implementation if that service is unreachable, so the assistant stays available either way. |
 | **(2) Processing Layer** | Entity & Intent Parsing | Regex and heuristics extract target blood groups (`A+`, `O-`, `AB-`, etc.) and geographical locations while classifying emergency urgency. |
 | **(3) Data & Knowledge Augmentation** | Vector RAG & Live Database | Queries Pinecone for medical compatibility context and queries MongoDB Atlas for verified available donors in the target city. |
 | **(4) AI Intelligence Core** | LLM Reasoning & Scoring | Synthesizes retrieved medical guidelines and live database state to evaluate candidate donor pools and generate actionable triage recommendations. |
@@ -72,7 +72,7 @@ hemoglobin-ai/
 │   ├── core/                         # Config, database, auth, emailer
 │   ├── routers/                      # Modular API controllers
 │   ├── schemas/                      # Unified Pydantic models
-│   └── main.py                       # Backend server entrypoint (Port 8000)
+│   └── main.py                       # Backend server entrypoint (Port 8001)
 │
 ├── frontend/                         <-- 💻 Next.js Web Interface
 │   ├── src/app/                      # Next.js app router pages
@@ -95,11 +95,11 @@ pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 8002 --reload
 ```
 
-### Core Backend Service (Port 8000)
+### Core Backend Service (Port 8001)
 ```bash
 cd backend
 pip install -r requirements.txt
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 ```
 
 ### Frontend Application (Port 3000)
