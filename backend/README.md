@@ -37,26 +37,37 @@ It handles database management, donor registration, emergency matching, automate
 
 ---
 
-## 📦 Setup & Running
+## 📦 Setup & Running (Linux / macOS)
 
 ```bash
 # Navigate to backend directory
 cd backend
 
+# Create and activate a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
 # Install dependencies
 pip install -r requirements.txt
 
 # Configure environment variables
-copy .env.example .env
+cp .env.example .env
+# then edit .env with your real MongoDB/OpenAI/Pinecone/SMTP credentials
+# (and AI_SYSTEM_URL if the ai-system/ microservice runs on a non-default host/port)
 
 # Run FastAPI backend server (Port 8001)
-python main.py
+uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+# or: python main.py
 ```
+
+To leave the virtual environment later, run `deactivate`.
 
 ---
 
-## 🧪 Running Automated Unit Tests
+## 🧪 Running Automated Unit Tests (Linux / macOS)
 
 ```bash
-python -m pytest
+cd backend
+source .venv/bin/activate
+python -m pytest tests/ -q
 ```

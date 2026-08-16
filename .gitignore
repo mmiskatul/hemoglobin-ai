@@ -9,6 +9,16 @@ backend/.env.production
 backend/.env.test
 backend/**/*.pyc
 
+# ai-system microservice
+ai-system/.venv/
+ai-system/__pycache__/
+ai-system/.pytest_cache/
+ai-system/.env
+ai-system/.env.local
+ai-system/.env.development
+ai-system/.env.production
+ai-system/.env.test
+
 # Node / Next.js
 frontend/node_modules/
 frontend/.next/
@@ -27,3 +37,6 @@ Thumbs.db
 *.log
 config.bat
 node_modules
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat

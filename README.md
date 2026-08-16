@@ -23,25 +23,33 @@ For a complete architectural breakdown, refer to [AI_SYSTEM_ARCHITECTURE.md](AI_
 
 ---
 
-## 🚀 Running Locally
+## 🚀 Running Locally (Linux / macOS)
+
+Run each service in its own terminal.
 
 ### 1. Dedicated AI System Microservice (Port 8002)
 ```bash
 cd ai-system
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-python main.py
+cp .env.example .env   # then fill in real credentials
+uvicorn main:app --host 0.0.0.0 --port 8002 --reload
 ```
 
-### 2. Main Backend (Port 8000)
+### 2. Main Backend (Port 8001)
 ```bash
 cd backend
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-python main.py
+cp .env.example .env   # then fill in real credentials
+uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 ```
 
 ### 3. Frontend Application (Port 3000)
+Requires Node.js **>= 20.9.0** (check with `node --version`; use `nvm install 20 && nvm use 20` if needed).
 ```bash
 cd frontend
+cp .env.example .env.local   # defaults to http://localhost:8001/api
 npm install
 npm run dev
 ```

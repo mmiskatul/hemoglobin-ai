@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import httpx
 from openai import AsyncOpenAI
 from core.config import get_ai_settings
 from core.database import get_db
@@ -8,6 +9,24 @@ from core.emailer import send_donor_notification
 from ai.rag import retrieve_context
 
 BLOOD_GROUPS = ["AB+", "AB-", "A+", "A-", "B+", "B-", "O+", "O-"]
+
+
+async def _call_ai_system(endpoint: str, payload: dict) -> dict | None:
+    """
+    Delegates AI reasoning to the standalone ai-system microservice (ai-system/).
+    Returns None (never raises) if ai-system is unreachable/misconfigured, so
+    callers can transparently fall back to the in-process implementation below.
+    """
+    settings = get_ai_settings()
+    if not settings.ai_system_url:
+        return None
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            resp = await client.post(f"{settings.ai_system_url}{endpoint}", json=payload)
+            resp.raise_for_status()
+            return resp.json()
+    except (httpx.HTTPError, ValueError):
+        return None
 
 
 def parse_blood_request(text: str) -> tuple[str | None, str | None]:
@@ -62,6 +81,12 @@ async def process_ai_chat_request(message: str, db) -> dict:
     1. Detects user intent (conversational greeting vs blood/donor data search).
     2. For conversational messages: responds warmly without dumping raw database reports.
     3. For blood/donor search requests: queries MongoDB Atlas, notifies matching donors via Gmail SMTP, and provides detailed data analysis.
+
+    This endpoint stays fully local rather than delegating to ai-system: it
+    dispatches real SMTP alerts against whichever `db` was injected into this
+    request (e.g. the test suite's in-memory override), and a separate
+    ai-system process cannot see that same request-scoped database, so
+    proxying here would silently under-report matches/notifications.
     """
     blood_group, location = parse_blood_request(message)
     is_search = is_blood_search_intent(message, blood_group, location)
@@ -213,7 +238,12 @@ async def process_ai_chat_request(message: str, db) -> dict:
 async def process_public_chat_request(message: str, db) -> dict:
     """
     Public-facing AI assistant endpoint for donor availability and blood donation guidance.
+    Delegates to ai-system when reachable, otherwise falls back to local processing.
     """
+    proxied = await _call_ai_system("/ai/public-chat", {"message": message})
+    if proxied is not None:
+        return proxied
+
     blood_group, location = parse_blood_request(message)
     donors_col = db["donors"]
     query = {"is_available": True}
@@ -265,7 +295,20 @@ async def process_public_chat_request(message: str, db) -> dict:
 async def process_match_request(request_data: dict, donors: list[dict], message: str) -> dict:
     """
     Generates structured AI recommendations for a specific blood request and a candidate pool of donors.
+    Delegates to ai-system when reachable, otherwise falls back to local processing.
     """
+    proxied = await _call_ai_system(
+        "/ai/match-request",
+        {
+            "blood_type": request_data.get("blood_group") or request_data.get("blood_type", "O+"),
+            "location": request_data.get("location", "Dhaka"),
+            "notes": message,
+            "donors": donors,
+        },
+    )
+    if proxied is not None:
+        return proxied
+
     settings = get_ai_settings()
     summary = f"Matching {len(donors)} donor candidate(s) for blood request ({request_data.get('blood_group', 'N/A')} in {request_data.get('location', 'N/A')})."
     
